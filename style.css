@@ -2,6 +2,11 @@ body {
   background-color: #C5C5B0;
   margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+}
+main {
+  height: calc(100% - 56px);
 }
 header {
   background: #5100B5;
@@ -35,5 +40,5 @@ li a:hover {
 }
 .map{
   width: 100%;
-  height: calc(100% - 56px);
+  height: 100%;
 }
