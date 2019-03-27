@@ -2,13 +2,16 @@ var map = L.map('mapid').setView([37.561959,-122.325554], 13);
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-var latlngs = [[37,-122],[38,-122],[38,-123],[37,-123]];
+var latlngs = [];
 var markers = [];
 var polyline = L.polyline(latlngs, {color: '#5100B5', opacity: 0.5}).addTo(map);
-var PATHDISTANCE = 10000;
+var selectedNode;
+var PATHDISTANCE = 6000;
 function resetNodes(){
   for (var nodeTag in nodeDict) {
     nodeDict[nodeTag].visited = false;
+    nodeDict[nodeTag].rootDistance = Number.MAX_VALUE;
+    nodeDict[nodeTag].parent = null;
   }
 }
 function initHeuristicDistance(startingNode){
@@ -17,6 +20,7 @@ function initHeuristicDistance(startingNode){
   }
 }
 function onMapClick(e) {
+  deleteCurrentPath();
   var shortestDistance = Infinity;
   var closestNode;
   for (var nodeTag in nodeDict) {
@@ -29,6 +33,21 @@ function onMapClick(e) {
   var marker = L.marker([closestNode.latitude,closestNode.longitude]).addTo(map);
   latlngs.push([closestNode.latitude,closestNode.longitude]);
   markers.push(marker);
+  polyline.setLatLngs(latlngs);
+  selectedNode = closestNode;
+}
+function addNodesToMap(newNodesList){
+  for(i = 0; i < newNodesList.length; i++){
+    latlngs.push([newNodesList[i].latitude,newNodesList[i].longitude]);
+    markers.push(L.marker([newNodesList[i].latitude,newNodesList[i].longitude]).addTo(map));
+  }
+}
+function addPathToMap(newNodePath){
+  for(i = 0; i < newNodePath.length; i++){
+    latlngs.push([newNodePath[i].latitude,newNodePath[i].longitude]);
+  }
+  markers.push(L.marker([newNodePath[0].latitude,newNodePath[0].longitude]).addTo(map));
+  markers.push(L.marker([newNodePath[newNodePath.length-1].latitude,newNodePath[newNodePath.length-1].longitude]).addTo(map));
   polyline.setLatLngs(latlngs);
 }
 function chooseNeighborNode(currentNode, neighborEdges){
@@ -44,30 +63,41 @@ function chooseNeighborNode(currentNode, neighborEdges){
   neighborNode = neighborEdge.getOther(currentNode);
   return [neighborNode, neighborEdge];
 }
+function deleteCurrentPath(){
+  while(markers.length>0){
+    markers.pop().remove();
+  }
+  latlngs = [];
+  polyline.setLatLngs(latlngs);
+}
+function removeLastNode(){
+  if(markers.length>0){
+    markers.pop().remove();
+    latlngs.pop();
+    polyline.setLatLngs(latlngs);
+  }
+}
 function onKeyPress(e) {
     if(e.originalEvent.key==="q"){  //remove last marker from the map
-      if(markers.length>0){
-        markers.pop().remove();
-        latlngs.pop();
-        polyline.setLatLngs(latlngs);
-      }
+      removeLastNode();
     }
     if(e.originalEvent.key==="w"){
-      while(markers.length>0){
-        markers.pop().remove();
-      }
-      latlngs = [];
-      polyline.setLatLngs(latlngs);
+      deleteCurrentPath();
+    }
+    if(e.originalEvent.key==="t"){
+      deleteCurrentPath();
+      var targetNodes = findTargetNodes(selectedNode, PATHDISTANCE, nodeDict);
+      console.log("targetsfound")
+      var targetNode = targetNodes[Math.floor(Math.random() * targetNodes.length)];
+      var path = generateOutPath(selectedNode, targetNode);
+      addPathToMap(path);
     }
     if(e.originalEvent.key==="g"){
       resetNodes();
-      while(markers.length>0){
-        markers.pop().remove();
-      }
-      latlngs = [];
-      var startingNode = nodeDict["564663890"];
-      initHeuristicDistance(startingNode);
+      deleteCurrentPath();
+      var startingNode = selectedNode;
       var path = [];
+      initHeuristicDistance(startingNode);
       var distanceTraveled = 0;
       var currentNode = startingNode;
       while(distanceTraveled<PATHDISTANCE){
@@ -82,9 +112,7 @@ function onKeyPress(e) {
         }
         var neighborNode;
         if(neighborEdgesUnvisited.length>0){
-          neighborData = chooseNeighborNode(currentNode, neighborEdgesUnvisited);
-          neighborNode = neighborData[0];
-          neighborEdge = neighborData[1];
+          [neighborNode, neighborEdge] = chooseNeighborNode(currentNode, neighborEdgesUnvisited);
         }
         else{
           var neighborEdge = currentNode.edges[Math.floor(Math.random() * currentNode.edges.length)];

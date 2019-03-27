@@ -40,7 +40,7 @@ function priorityQueue(){
     this.pItemList.push(new priorityItem(n,p));
     this.pObjectList.push(n);
   }
-  this.pop = function(){
+  this.pop = function(){  //pop with highest priority
     if(this.pItemList.length==0){
       return null;
     }

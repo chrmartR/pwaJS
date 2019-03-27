@@ -42,14 +42,8 @@ function findTargetNodes(root, rLength, nodeDictionary){
   var targetNodes = [];
   var modDistance = (Math.PI-2)*rLength/2;
   var queue = new priorityQueue();
-  console.log(Object.keys(nodeDictionary).length);
   //on first run, all nodes should already have rootDistance = 0 and visited=false from initialization
-  for(var nIndex in Object.values(nodeDictionary)){
-    //time the attribute setting–
-    
-  }
-  console.log("initialized")
-  console.log("distance="+rLength+" mod="+modDistance);
+  resetNodes();
   queue.addObj(root, 0);
   root.rootDistance = 0;
   while(queue.size()>0){
@@ -85,6 +79,49 @@ function findTargetNodes(root, rLength, nodeDictionary){
       }
     }
   }
-  console.log("targets found")
   return targetNodes;
+}
+function generateOutPath(start, target){
+  console.log("StartOutPath")
+  var path = [];
+  var q = new priorityQueue();
+  resetNodes();
+  start.distance = 0;
+  q.addObj(start, 0);
+  console.log("InitNodesfinished")
+  while(q.size()>0){
+    var cNode = q.pop();
+    if(cNode === target){
+      console.log("finaldistance = "+cNode.distance)
+      var pmNode = target;
+      while(pmNode.parent !== null){
+        path.push(pmNode);
+        pmNode = pmNode.parent;
+      }
+      path.reverse();
+      return path;
+    }
+    cNode.visited = true;
+    console.log("startingsize="+q.size());
+    console.log("edges="+cNode.edges.length);
+    for(var e in cNode.edges){
+      var cEdge = cNode.edges[e];
+      var oNode = cEdge.getOther(cNode);
+      if(oNode.visited){
+        continue;
+      }
+      var altDistance = cNode.distance + cEdge.distance;
+      if(q.getIndexOf(oNode)===-1){
+        q.addObj(oNode, Number.MAX_VALUE);
+      }
+      else if(altDistance > oNode.distance){
+					continue;
+			}
+      oNode.distance=altDistance;
+      oNode.parent = cNode;
+      q.changePriority(oNode,-oNode.distance);
+    }
+    console.log("sizefinal"+q.size());
+  }
+  return path;
 }
