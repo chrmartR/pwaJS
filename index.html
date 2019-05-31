@@ -12,19 +12,21 @@
 </head>
 <body>
   <header class="header">
-    <ul class="headerbar">
-      <li><a href="#home" class="header__title">Mapping PWA</a></li>
-      <li><a href="#generate">Generate Route</a></li>
-      <li><a href="#settings">Settings</a></li>
-      <li><a href="#about">About</a></li>
-    </ul>
+    <div class="headerbar">
+      <a href="index.html" class="header__title">Mapping PWA</a>
+      <button type="button" onclick="onButtonClick()">Generate Route</button>
+      <a href="settings.html">Settings</a>
+      <a href="about.html">About</a>
+    </div>
   </header>
   <main>
     <div class="map" id="mapid"></div>
+
     <script src="gridObjects.js"></script>
     <script src="mapFunctions.js"></script>
     <script src="parseOSM.js"></script>
     <script src="map.js"></script>
+
   </main>
 </body>
 </html>

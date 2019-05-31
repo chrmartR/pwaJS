@@ -68,4 +68,8 @@ function priorityQueue(){
   this.getIndexOf = function(n){
     return this.pItemList.indexOf(n);
   }
+  this.clear = function(){
+    this.pItemList = [];
+    this.pObjectList = [];
+  }
 }

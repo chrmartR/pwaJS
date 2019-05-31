@@ -6,7 +6,7 @@ var latlngs = [];
 var markers = [];
 var polyline = L.polyline(latlngs, {color: '#5100B5', opacity: 0.5}).addTo(map);
 var selectedNode;
-var PATHDISTANCE = 6000;
+var PATHDISTANCE = 3500;
 function resetNodes(){
   for (var nodeTag in nodeDict) {
     nodeDict[nodeTag].visited = false;
@@ -84,15 +84,19 @@ function onKeyPress(e) {
     if(e.originalEvent.key==="w"){
       deleteCurrentPath();
     }
-    if(e.originalEvent.key==="t"){
+    if(e.originalEvent.key==="s"){ //show targets
       deleteCurrentPath();
       var targetNodes = findTargetNodes(selectedNode, PATHDISTANCE, nodeDict);
-      console.log("targetsfound")
+      addNodesToMap(targetNodes);
+    }
+    if(e.originalEvent.key==="t"){ //generate path to the target
+      deleteCurrentPath();
+      var targetNodes = findTargetNodes(selectedNode, PATHDISTANCE, nodeDict);
       var targetNode = targetNodes[Math.floor(Math.random() * targetNodes.length)];
       var path = generateOutPath(selectedNode, targetNode);
       addPathToMap(path);
     }
-    if(e.originalEvent.key==="g"){
+    if(e.originalEvent.key==="g"){ //generate random path
       resetNodes();
       deleteCurrentPath();
       var startingNode = selectedNode;
@@ -127,6 +131,16 @@ function onKeyPress(e) {
       }
       polyline.setLatLngs(latlngs);
     }
+    if(e.originalEvent.key==="c"){
+      deleteCurrentPath();
+      var path = generateCirclePath(selectedNode, PATHDISTANCE);
+      addPathToMap(path);
+    }
+}
+function onButtonClick(){
+  deleteCurrentPath();
+  var path = generateCirclePath(selectedNode, PATHDISTANCE);
+  addPathToMap(path);
 }
 map.on('click', onMapClick);
 map.on('keypress', onKeyPress);
